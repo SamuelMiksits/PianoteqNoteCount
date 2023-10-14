@@ -1,8 +1,8 @@
 # Pianoteq Note Count
 
-Uses the MIDI archiving feature to calculate how many notes have been played on your instance of Pianoteq. So in practice, if all notes have been played on one digital piano/keyboard, and that device has exclusively been used with Pianoteq, it calculates how many notes you have played on that keyboard.
+Uses the MIDI archiving feature to calculate how many notes have been played on your instance of Pianoteq. So in practice, if all notes have been played on one digital piano/keyboard, and that device has exclusively been used with Pianoteq, it calculates how many notes you have played on that device.
 
-Two versions of the script exists. The first one is ```NoteCount.py``` which calculates the total note count, and gives you the note count together with a sum of time played expressed in hours, minutes and seconds. The second one ```NoteCountExtended.py``` also scans the contents of all MIDI files, and computes how many times each key was pressed, and provides a per-key breakdown of how many times each individual key was pressed. This can take many minutes for a large archive and a slow computer, so a version called ```NoteCountExtendedMultiProc.py``` exists which runs the program on all cores. 
+Two versions of the script exists. The first one is ```NoteCount.py``` which calculates the total note count, and gives you the note count together with a sum of time played expressed in hours, minutes and seconds. The second one, ```NoteCountExtended.py``` also scans the contents of all MIDI files, and computes how many times each key was pressed, and provides a per-key breakdown of how many times each individual key was pressed. This can take many minutes to run for a large archive and a slow computer, so a version called ```NoteCountExtendedMultiProc.py``` exists which runs the program on all cores. The multi core version still takes 1 minute on my Ryzen 5800X 8 core processor, and my system has an SSD.
 
 Example output for both versions of the script:
 
@@ -38,13 +38,17 @@ Least used key: A#7 with 64 presses
 Most used key: C4 with 555040 presses
 ```
 
+Sometimes, MIDI files can be corrupted/incorrectly formatted. It means that the per-key breakdown will not be able to take the notes from that file into account. However, the total note count will still take those into account, since the total note count is calculated by just looking at the files name in the MIDI archive. A warning message will be provided in case a corrupted file is detected, which will print the name of the corrupted file. The above example had 2 corrupted MIDI files, so if you summarize all notes in the table it should be different from the total note count. With that said, it bears mentioning that I have tested on a smaller sample set of data without corrupt files and both methods came to the same number.
+
 # Prerequisites
 
-- Pianoteq needs to be configured with automatic recording enabled, specifically on the setting "a billion years" if you want it to count lifetime.
+- Pianoteq needs to be configured with automatic recording enabled, specifically on the setting "a billion years" if you want it to count lifetime notes.
 - Uses Python. The module ```mido``` is needed only for the ```NoteCountExtended.py``` and ```NoteCountExtendedMultiProc.py``` scripts, but not ```NoteCount.py```.
 - I have only tested this script on Linux, but I have written it so that it should also be able to run on Windows. I have no idea if it will work on Mac.
 
 # How to run it
+
+## Windows
 
 Start by moving the scripts (the .py files) to your ```Archive``` folder. The default location should be:
 
@@ -52,30 +56,47 @@ Start by moving the scripts (the .py files) to your ```Archive``` folder. The de
 C:\Users\YourUserName\AppData\Roaming\Modartt\Pianoteq\Archive
 ```
 
-on Windows, and:
+To run the script, need to enter the command (from the Archive folder):
 
 ```
-/home/YourUserName/.local/share/Modartt/Pianoteq/Archive
+python NoteCount.py
 ```
 
-on Linux, and for Mac I do not know.
-
-
-If you wish to run either of the versions with the per-note breakdown, you need to install the ```mido``` package.
-
-For Windows, this could be done with the pip package manager by running:
+If you wish to run either of the versions with the per-note breakdown, you need to install the ```mido``` package. For Windows, this could be done with the pip package manager by running:
 
 ```
 pip install mido
 ```
 
-On a lot of major Linux distribution nowadays, PEP668 has been adopted which prohibits installing packages systemwide as they can conflict with packages installed by the package manager. As such, the proper workaround is to use virtual environments. Start by creating a new virtual environment:
+Then you can run the program with:
+
+```
+python NoteCountExtended.py
+```
+
+or you can use the version ```NoteCountExtendedMultiProc.py``` instead which uses all cores.
+
+## Linux
+
+Start by moving the scripts (the .py files) to your ```Archive``` folder. The default location should be:
+
+```
+/home/YourUserName/.local/share/Modartt/Pianoteq/Archive
+```
+
+To run the script, need to enter the command (from the Archive folder):
+
+```
+python3 ./NoteCount.py
+```
+
+If you wish to run either of the versions with the per-note breakdown, you need to install the ```mido``` package. On a lot of major Linux distribution nowadays, PEP668 has been adopted which prohibits the installion of python packages system-wide with pip as they can conflict with python packages installed by the package manager. As such, the proper way to install python packages is to use virtual environments. Start by creating a new virtual environment:
 
 ```
 virtualenv pianoteqnotecount
 ```
 
-though you should not place the virtual environment in your archive folder, as the script will think that this folder is part of the MIDI archive! A workaround if you want it to be in the Archive folder is to name it with a '.' at the start (so .pianoteqnotecount), as the script ignores everything in the root directory that contains a '.'. 
+though you should not place the virtual environment in your archive folder, as the script will think that this folder is part of the MIDI archive. A workaround if you want it to be in the Archive folder is to name it with a '.' at the start (so .pianoteqnotecount), as the script is written to ignore everything in the base of the ```Archive``` directory that contains a '.'. 
 
 Activate the virtual environment:
 
@@ -89,23 +110,17 @@ Afterwards you can install the package with:
 pip install mido
 ```
 
-and then after you have run the scripts you can write:
+Then you can run the program with:
+
+```
+python3 ./NoteCountExtended.py
+```
+
+or you can use the version ```NoteCountExtendedMultiProc.py``` instead which uses all cores.
+
+After you have run the scripts you can write:
 ```
 deactivate
 ```
 
 to deactivate the virtual environment.
-
-To run the script, need to enter the command (from the Archive folder):
-
-```
-python NoteCount.py
-```
-
-on Windows, and:
-
-```
-python3 ./NoteCount.py
-```
-
-on Linux, if you want to run the ```NoteCount.py``` file.
